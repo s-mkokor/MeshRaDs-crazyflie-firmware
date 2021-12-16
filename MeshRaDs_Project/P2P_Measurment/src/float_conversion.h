@@ -1,3 +1,5 @@
+// mostly copied from code published by geeksforgeeks
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>

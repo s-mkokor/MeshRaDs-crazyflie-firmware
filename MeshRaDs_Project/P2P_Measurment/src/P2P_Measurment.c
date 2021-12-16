@@ -23,6 +23,7 @@
  *  MA  02110-1301, USA.
  *
  * P2P_Measurment.c - App layer application to make Perr to Peer RSSI measurments
+ *                    Peer to Peer messages should contain the current position of the drone
  * 
  */
 
