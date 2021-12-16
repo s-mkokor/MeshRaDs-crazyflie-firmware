@@ -1,29 +1,29 @@
 /**
- * ,---------,       ____  _ __
- * |  ,-^-,  |      / __ )(_) /_______________ _____  ___
- * | (  O  ) |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
- * | / ,--´  |    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
- *    +------`   /_____/_/\__/\___/_/   \__,_/ /___/\___/
+ *      __  ___          __    ____        ____  _____
+ *     /  |/  /__  _____/ /_  / __ \____ _/ __ \/ ___/
+ *    / /|_/ / _ \/ ___/ __ \/ /_/ / __ `/ / / /\__ \ 
+ *   / /  / /  __(__  ) / / / _, _/ /_/ / /_/ /___/ / 
+ *  /_/  /_/\___/____/_/ /_/_/ |_|\__,_/_____//____/  
+ *  
  *
- * Crazyflie control firmware
+ *  Copyright (C) 2021 MeshRaDs
  *
- * Copyright (C) 2019 Bitcraze AB
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, in version 3.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ *  MA  02110-1301, USA.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- *
- * peer_to_peer.c - App layer application of simple demonstartion peer to peer
- *  communication. Two crazyflies need this program in order to send and receive.
+ * P2P_Measurment.c - App layer application to make Perr to Peer RSSI measurments
+ * 
  */
 
 
@@ -87,9 +87,10 @@ void appMain()
     char x_pos[7];
     char y_pos[7];
     char z_pos[7];
-    gcvt((double)position.x, 4, x_pos);
-    gcvt((double)position.y, 4, y_pos);
-    gcvt((double)position.z, 4, z_pos);
+   
+    snprintf(x_pos, sizeof(x_pos), "%.3f", position.x);    
+    snprintf(y_pos, sizeof(y_pos), "%.3f", position.y);
+    snprintf(z_pos, sizeof(z_pos), "%.3f", position.z);
 
     char str[MAX_MESSAGE_LENGTH] = "";                            //Building message string str
     char help_str[4] = ", ";
