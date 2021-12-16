@@ -47,6 +47,8 @@
 
 #include "estimator_kalman.h"
 #include "stabilizer_types.h"
+#include "float_conversion.h"
+
 
 #define MAX_MESSAGE_LENGTH 23
 
@@ -54,7 +56,7 @@ point_t position;
 
 void p2pcallbackHandler(P2PPacket *p)
 {
-  // Parse the data from the other crazyflie and print it
+   Parse the data from the other crazyflie and print it
   uint8_t other_id = p->data[0];
   static char msg[MAX_MESSAGE_LENGTH + 1];
   memcpy(&msg, &p->data[1], sizeof(char)*MAX_MESSAGE_LENGTH);
@@ -64,7 +66,8 @@ void p2pcallbackHandler(P2PPacket *p)
   uint64_t address = configblockGetRadioAddress();
   uint8_t my_id =(uint8_t)((address) & 0x00000000ff);
 
-  DEBUG_PRINT("%d, %d, %d, %s \n", my_id, rssi, other_id, msg);
+  DEBUG_PRINT("%d, %d, %d, %s \n", my_id, rssi, other_id, msg);   // Seems to take to long
+  
 }
 
 void appMain()
@@ -91,8 +94,15 @@ void appMain()
 
     //Put a string in the payload
     estimatorKalmanGetEstimatedPos(&position);    //Get X, Y, Z Position
-    char str[MAX_MESSAGE_LENGTH] = "";            //Building message string str
-    sprintf(str, "%.3f, %.3f, %.3f", (double)position.x, (double)position.y, (double)position.z);    
+    char str[MAX_MESSAGE_LENGTH];            //Building message string str
+    char buff_x[7];
+    ftoa(position.x, buff_x, 2);
+    char buff_y[7];
+    ftoa(position.y, buff_y, 2);
+    char buff_z[7];
+    ftoa(position.z, buff_z, 2);
+
+    sprintf(str, "%s, %s, %s", buff_x, buff_y, buff_z);    
     int message_length = strlen(str);
     memcpy(&p_reply.data[1], &str, sizeof(char)*message_length);
 
@@ -100,7 +110,6 @@ void appMain()
     p_reply.size=sizeof(char)*message_length+1;
 
     // Sending the payload    
-    DEBUG_PRINT("%s \n", str);
     radiolinkSendP2PPacketBroadcast(&p_reply);
   }
 }
