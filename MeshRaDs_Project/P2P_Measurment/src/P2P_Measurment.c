@@ -82,41 +82,25 @@ void appMain()
     uint8_t my_id =(uint8_t)((address) & 0x00000000ff);
     p_reply.data[0]=my_id;
 
+    // Register the callback function so that the CF can receive packets as well.
+    p2pRegisterCB(p2pcallbackHandler);
+
+  while(1) {
+    // Waiting for a delay time before beginning with the next transmission
+    vTaskDelay(M2T(2000));
+
     //Put a string in the payload
     estimatorKalmanGetEstimatedPos(&position);    //Get X, Y, Z Position
-    char x_pos[7];
-    char y_pos[7];
-    char z_pos[7];
-   
-    snprintf(x_pos, sizeof(x_pos), "%.3f", position.x);    
-    snprintf(y_pos, sizeof(y_pos), "%.3f", position.y);
-    snprintf(z_pos, sizeof(z_pos), "%.3f", position.z);
-
-    char str[MAX_MESSAGE_LENGTH] = "";                            //Building message string str
-    char help_str[4] = ", ";
-    strcat(str, x_pos);
-    strcat(str, help_str);
-    strcat(str, y_pos);
-    strcat(str, help_str);
-    strcat(str, z_pos);
-
+    char str[MAX_MESSAGE_LENGTH] = "";            //Building message string str
+    sprintf(str, "%.3f, %.3f, %.3f", (double)position.x, (double)position.y, (double)position.z);    
     int message_length = strlen(str);
-
     memcpy(&p_reply.data[1], &str, sizeof(char)*message_length);
 
     // Set the size, which is the amount of bytes the payload with ID and the string 
     p_reply.size=sizeof(char)*message_length+1;
 
-    // Register the callback function so that the CF can receive packets as well.
-    p2pRegisterCB(p2pcallbackHandler);
-
-  while(1) {
-    // Send a message every 2 seconds
-    //   Note: if they are sending at the exact same time, there will be message collisions, 
-    //    however since they are sending every 2 seconds, and they are not started up at the same
-    //    time and their internal clocks are different, there is not really something to worry about
-
-    vTaskDelay(M2T(2000));
+    // Sending the payload    
+    DEBUG_PRINT("%s \n", str);
     radiolinkSendP2PPacketBroadcast(&p_reply);
   }
 }
