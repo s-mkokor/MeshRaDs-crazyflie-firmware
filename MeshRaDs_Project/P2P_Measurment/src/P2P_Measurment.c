@@ -32,8 +32,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
-
 
 #include "app.h"
 
@@ -46,29 +44,23 @@
 #define DEBUG_MODULE "P2P"
 #include "debug.h"
 
-#include "estimator_kalman.h"
-#include "stabilizer_types.h"
-#include "float_conversion.h"
+#define MESSAGE "!"
+#define MESSAGE_LENGHT 1
 
-
-#define MAX_MESSAGE_LENGTH 23
-
-point_t position;
 
 void p2pcallbackHandler(P2PPacket *p)
 {
-   Parse the data from the other crazyflie and print it
+  // Parse the data from the other crazyflie and print it
   uint8_t other_id = p->data[0];
-  static char msg[MAX_MESSAGE_LENGTH + 1];
-  memcpy(&msg, &p->data[1], sizeof(char)*MAX_MESSAGE_LENGTH);
-  msg[MAX_MESSAGE_LENGTH] = 0;
+  static char msg[MESSAGE_LENGHT + 1];
+  memcpy(&msg, &p->data[1], sizeof(char)*MESSAGE_LENGHT);
+  msg[MESSAGE_LENGHT] = 0;
   uint8_t rssi = p->rssi;
 
   uint64_t address = configblockGetRadioAddress();
   uint8_t my_id =(uint8_t)((address) & 0x00000000ff);
 
-  DEBUG_PRINT("%d, %d, %d, %s \n", my_id, rssi, other_id, msg);   // Seems to take to long
-  
+  DEBUG_PRINT("%d, %d, %d, %s\n", my_id, rssi, other_id, msg);
 }
 
 void appMain()
@@ -86,31 +78,23 @@ void appMain()
     uint8_t my_id =(uint8_t)((address) & 0x00000000ff);
     p_reply.data[0]=my_id;
 
+    //Put a string in the payload
+    char *str="!";
+    memcpy(&p_reply.data[1], str, sizeof(char)*MESSAGE_LENGHT);
+
+    // Set the size, which is the amount of bytes the payload with ID and the string 
+    p_reply.size=sizeof(char)*MESSAGE_LENGHT+1;
+
     // Register the callback function so that the CF can receive packets as well.
     p2pRegisterCB(p2pcallbackHandler);
 
   while(1) {
-    // Waiting for a delay time before beginning with the next transmission
+    // Send a message every 2 seconds
+    //   Note: if they are sending at the exact same time, there will be message collisions, 
+    //    however since they are sending every 2 seconds, and they are not started up at the same
+    //    time and their internal clocks are different, there is not really something to worry about
+
     vTaskDelay(M2T(2000));
-
-    //Put a string in the payload
-    estimatorKalmanGetEstimatedPos(&position);    //Get X, Y, Z Position
-    char str[MAX_MESSAGE_LENGTH];            //Building message string str
-    char buff_x[7];
-    ftoa(position.x, buff_x, 2);
-    char buff_y[7];
-    ftoa(position.y, buff_y, 2);
-    char buff_z[7];
-    ftoa(position.z, buff_z, 2);
-
-    sprintf(str, "%s, %s, %s", buff_x, buff_y, buff_z);    
-    int message_length = strlen(str);
-    memcpy(&p_reply.data[1], &str, sizeof(char)*message_length);
-
-    // Set the size, which is the amount of bytes the payload with ID and the string 
-    p_reply.size=sizeof(char)*message_length+1;
-
-    // Sending the payload    
     radiolinkSendP2PPacketBroadcast(&p_reply);
   }
 }
