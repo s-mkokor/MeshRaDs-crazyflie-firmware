@@ -3,6 +3,10 @@
 This project contains a modified version of the Crazyflie Frimware.   
 See below for the original firmware provided by Bitcraze
 
+The following branches are currently used:
+* `measurment` --> contains a working firmware that can be used for RSSI measurments. Has no real Payload
+* `P2P_dev` --> experimental firmware that tried to send its position in the payload !!! Not Working !!!
+
 
 
 # Crazyflie Firmware  [![CI](https://github.com/bitcraze/crazyflie-firmware/workflows/CI/badge.svg)](https://github.com/bitcraze/crazyflie-firmware/actions?query=workflow%3ACI)
