@@ -23,8 +23,10 @@
  *  MA  02110-1301, USA.
  *
  * P2P_Measurment.c - App layer application to make Perr to Peer RSSI measurments
- *                    Peer to Peer messages should contain the current position of the drone
- * 
+ *                    Peer to Peer messages that contain the current position and timestamp of the drone
+ * Note: if they are sending at the exact same time, there will be message collisions, 
+ *       however since they are sending every 2 seconds, and they are not started up at the same
+ *       time and their internal clocks are different, there is not really something to worry about
  */
 
 
@@ -44,23 +46,23 @@
 #define DEBUG_MODULE "P2P"
 #include "debug.h"
 
-#define MESSAGE "!"
-#define MESSAGE_LENGHT 1
+#include "estimator_kalman.h"
+#include "stabilizer_types.h"
 
+point_t payload;
 
 void p2pcallbackHandler(P2PPacket *p)
 {
   // Parse the data from the other crazyflie and print it
   uint8_t other_id = p->data[0];
-  static char msg[MESSAGE_LENGHT + 1];
-  memcpy(&msg, &p->data[1], sizeof(char)*MESSAGE_LENGHT);
-  msg[MESSAGE_LENGHT] = 0;
+  static point_t msg;
+  memcpy(&msg,&p->data[1],sizeof(msg));
   uint8_t rssi = p->rssi;
 
   uint64_t address = configblockGetRadioAddress();
   uint8_t my_id =(uint8_t)((address) & 0x00000000ff);
 
-  DEBUG_PRINT("%d, %d, %d, %s\n", my_id, rssi, other_id, msg);
+  DEBUG_PRINT("%d, %d, %lu, %f, %f, %f, %d\n", my_id, rssi, msg.timestamp, (double)msg.x, (double)msg.y, (double)msg.z, other_id);
 }
 
 void appMain()
@@ -78,23 +80,22 @@ void appMain()
     uint8_t my_id =(uint8_t)((address) & 0x00000000ff);
     p_reply.data[0]=my_id;
 
-    //Put a string in the payload
-    char *str="!";
-    memcpy(&p_reply.data[1], str, sizeof(char)*MESSAGE_LENGHT);
-
-    // Set the size, which is the amount of bytes the payload with ID and the string 
-    p_reply.size=sizeof(char)*MESSAGE_LENGHT+1;
-
     // Register the callback function so that the CF can receive packets as well.
     p2pRegisterCB(p2pcallbackHandler);
 
   while(1) {
     // Send a message every 2 seconds
-    //   Note: if they are sending at the exact same time, there will be message collisions, 
-    //    however since they are sending every 2 seconds, and they are not started up at the same
-    //    time and their internal clocks are different, there is not really something to worry about
-
     vTaskDelay(M2T(2000));
+
+    // Generating  the Payload
+    estimatorKalmanGetEstimatedPos(&payload);
+    payload.timestamp = (uint32_t)(usecTimestamp()/1000);
+
+    // Filling the message package
+    memcpy(&p_reply.data[1], &payload, sizeof(payload));
+    p_reply.size=sizeof(payload)+1; 
+
+    // Sending the message
     radiolinkSendP2PPacketBroadcast(&p_reply);
   }
 }
