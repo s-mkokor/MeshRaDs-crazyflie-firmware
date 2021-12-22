@@ -84,8 +84,8 @@ void appMain()
     p2pRegisterCB(p2pcallbackHandler);
 
   while(1) {
-    // Send a message every 2 seconds
-    vTaskDelay(M2T(2000));
+    // Send a message every 0.25 seconds
+    vTaskDelay(M2T(250));
 
     // Generating  the Payload
     estimatorKalmanGetEstimatedPos(&payload);
