@@ -4,8 +4,8 @@ This project contains a modified version of the Crazyflie Frimware.
 See below for the original firmware provided by Bitcraze
 
 The following branches are currently used:
-* `measurment` --> contains a working firmware that can be used for RSSI measurments. Has no real Payload
-* `P2P_dev` --> experimental firmware that tried to send its position in the payload !!! Not Working !!!
+* `measurment` --> contains a working firmware that can be used for RSSI measurments. Currently broadcasts a Message every 250ms, that contains a Timestamp and the current position
+
 
 
 
